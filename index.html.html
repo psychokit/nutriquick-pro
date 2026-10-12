@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriQuick Pro — AI Diet & Time Planner</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .hero-banner {
+      width: 100%;
+      height: 140px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,182,212,0.2));
+      border: 1px dashed var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-banner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-tag {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.6);
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label { font-size: 0.85rem; color: var(--text-muted); }
+
+    input, select {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus { border-color: var(--primary); }
+
+    .days-hint {
+      font-size: 0.75rem;
+      color: #38bdf8;
+      min-height: 16px;
+    }
+
+    .btn {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn:hover { background: var(--primary-hover); }
+
+    .result-box {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      display: none;
+    }
+
+    .macro-chips {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    .chip {
+      background: var(--card-bg);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .chip-val { font-size: 1.15rem; font-weight: bold; color: var(--primary); margin-top: 4px; }
+
+    .plan-notice {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .plan-safe {
+      background: rgba(16, 185, 129, 0.1);
+      border-left: 3px solid var(--primary);
+      color: #a7f3d0;
+    }
+
+    /* Meals View */
+    .filter-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .meal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+    }
+
+    .meal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 8px;
+    }
+
+    .meal-info span {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .meal-del {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.3rem;
+      padding: 0 4px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      background: #334155;
+      color: #fff;
+      font-size: 0.9rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: 0.3s;
+      z-index: 9999;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.error { border-left: 4px solid var(--danger); }
+    #toast.warning { border-left: 4px solid var(--warning); }
+    #toast.success { border-left: 4px solid var(--primary); }
+
+    /* Ukrywanie paska tiiny.host */
+    div[class*="tiiny"],
+    iframe[src*="tiiny"],
+    [id*="tiiny-banner"],
+    div:has(> a[href*="tiiny.host"]) {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="brand">
+      <div class="logo-box">🥗</div>
+      <div>
+        <h1 style="font-size: 1.15rem;">NutriQuick Pro</h1>
+        <small style="color: var(--text-muted);">Inteligentny kalkulator diety i TDEE</small>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchView('calc')">Kalkulator</button>
+      <button class="tab-btn" onclick="switchView('meals')">Mój Jadłospis</button>
+    </div>
+  </header>
+
+  <main class="card">
+    <!-- WIDOK 1: KALKULATOR -->
+    <section id="view-calc" class="view active">
+      <div class="hero-banner">
+        <img src="banner.png" alt="Zdrowe odżywianie AI" onerror="this.style.display='none'">
+        <div class="hero-tag">Wygenerowano przez AI</div>
+      </div>
+
+      <form id="calc-form" onsubmit="calculateCalories(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="gender">Płeć</label>
+            <select id="gender">
+              <option value="male" selected>Mężczyzna</option>
+              <option value="female">Kobieta</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="age">Wiek (lata)</label>
+            <input type="number" id="age" min="14" max="100" placeholder="np. 20" required>
+          </div>
+          <div class="form-group">
+            <label for="weight">Aktualna waga (kg)</label>
+            <input type="number" id="weight" step="0.1" min="30" max="250" placeholder="np. 75" oninput="updateMinDaysLimit()" required>
+          </div>
+          <div class="form-group">
+            <label for="target-weight">Docelowa waga (kg)</label>
+            <input type="number" id="target-weight" step="0.1" min="30" max="250" placeholder="np. 70" oninput="updateMinDaysLimit()" required>
+          </div>
+          <div class="form-group">
+            <label for="target-days">Docelowy czas (dni)</label>
+            <input type="number" id="target-days" min="7" max="730" placeholder="Wpisz dni" required>
+            <span id="days-hint" class="days-hint"></span>
+          </div>
+          <div class="form-group">
+            <label for="height">Wzrost (cm)</label>
+            <input type="number" id="height" min="100" max="230" placeholder="np. 178" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="activity">Poziom aktywności fizycznej</label>
+          <select id="activity">
+            <option value="1.2">Siedzący tryb życia (brak treningów)</option>
+            <option value="1.375" selected>Niska aktywność (1-3 treningi w tygodniu)</option>
+            <option value="1.55">Umiarkowana aktywność (3-5 treningów w tygodniu)</option>
+            <option value="1.725">Wysoka aktywność (ciężkie treningi codziennie)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn">Oblicz plan żywieniowy</button>
+      </form>
+
+      <div id="result-box" class="result-box">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Dzienne zapotrzebowanie kaloryczne:</p>
+        <h2 id="total-kcal" style="font-size: 2.2rem; color: var(--primary); margin: 6px 0;">0 kcal</h2>
+        
+        <div id="plan-info" class="plan-notice"></div>
+
+        <div class="macro-chips">
+          <div class="chip">
+            <span style="font-size:0.8rem; color:var(--text-muted);">Białko (2g/kg)</span>
+            <div class="chip-val" id="macro-p">0g</div>
+          </div>
+          <div class="chip">
+            <span style="font-size:0.8rem; color:var(--text-muted);">Węglowodany</span>
+            <div class="chip-val" id="macro-c">0g</div>
+          </div>
+          <div class="chip">
+            <span style="font-size:0.8rem; color:var(--text-muted);">Tłuszcze</span>
+            <div class="chip-val" id="macro-f">0g</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WIDOK 2: JADŁOSPIS -->
+    <section id="view-meals" class="view">
+      <form onsubmit="addMeal(event)" style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <input type="text" id="meal-name" placeholder="Nazwa posiłku (np. Sałatka z tuńczykiem)" style="flex: 2;" required>
+        <input type="number" id="meal-kcal" placeholder="Kcal" style="flex: 1;" min="1" max="3000" required>
+        <button type="submit" class="btn" style="width: auto; padding: 0 18px;">Dodaj</button>
+      </form>
+
+      <div class="filter-row">
+        <span id="meal-summary" style="font-size: 0.9rem; color: var(--text-muted);">Suma: 0 kcal</span>
+        <button class="tab-btn" onclick="clearMeals()" style="font-size: 0.8rem; padding: 4px 10px;">Wyczyść listę</button>
+      </div>
+
+      <ul id="meal-list" class="meal-list"></ul>
+    </section>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let meals = JSON.parse(localStorage.getItem('nutri_meals')) || [];
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    setTimeout(() => { t.className = ''; }, 2600);
+  }
+
+  function switchView(view) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+    if (view === 'calc') {
+      event.target.classList.add('active');
+      document.getElementById('view-calc').classList.add('active');
+    } else {
+      event.target.classList.add('active');
+      document.getElementById('view-meals').classList.add('active');
+      renderMeals();
+    }
+  }
+
+  function getCalculatedMinDays() {
+    const w = parseFloat(document.getElementById('weight').value);
+    const targetW = parseFloat(document.getElementById('target-weight').value);
+
+    if (isNaN(w) || isNaN(targetW)) return 7;
+
+    const diff = +(targetW - w).toFixed(1);
+
+    if (diff < -0.3) {
+      const kgToLose = Math.abs(diff);
+      return Math.max(7, Math.ceil(kgToLose * 7));
+    } else if (diff > 0.3) {
+      const kgToGain = diff;
+      return Math.max(7, Math.ceil(kgToGain * 14));
+    } else {
+      return 1;
+    }
+  }
+
+  function updateMinDaysLimit() {
+    const daysInput = document.getElementById('target-days');
+    const hint = document.getElementById('days-hint');
+    const minDays = getCalculatedMinDays();
+
+    daysInput.min = minDays;
+
+    const w = parseFloat(document.getElementById('weight').value);
+    const targetW = parseFloat(document.getElementById('target-weight').value);
+
+    if (!isNaN(w) && !isNaN(targetW)) {
+      const diff = +(targetW - w).toFixed(1);
+      if (Math.abs(diff) <= 0.3) {
+        hint.textContent = 'Masa stabilna (cel zerowy)';
+        daysInput.placeholder = 'min. 1 dzień';
+      } else {
+        hint.textContent = `Min. bezpieczny czas: ${minDays} dni (${diff < 0 ? 'normy WHO' : 'normy ACSM'})`;
+        daysInput.placeholder = `min. ${minDays} dni`;
+      }
+    } else {
+      hint.textContent = '';
+      daysInput.placeholder = 'Wpisz dni';
+    }
+  }
+
+  function calculateCalories(e) {
+    e.preventDefault();
+    const gender = document.getElementById('gender').value;
+    const w = parseFloat(document.getElementById('weight').value);
+    const targetW = parseFloat(document.getElementById('target-weight').value);
+    const h = parseFloat(document.getElementById('height').value);
+    const a = parseFloat(document.getElementById('age').value);
+    const userDays = parseInt(document.getElementById('target-days').value);
+    const pal = parseFloat(document.getElementById('activity').value);
+
+    if (!w || !targetW || !h || !a || !userDays) {
+      showToast('Wypełnij wszystkie pola formularza!', 'error');
+      return;
+    }
+
+    const minSafeDays = getCalculatedMinDays();
+
+    if (userDays < minSafeDays) {
+      showToast(`Niebezpieczne tempo! Minimalny czas to ${minSafeDays} dni.`, 'error');
+      document.getElementById('target-days').value = minSafeDays;
+      document.getElementById('target-days').focus();
+      return;
+    }
+
+    let bmr = (10 * w) + (6.25 * h) - (5 * a);
+    bmr += (gender === 'male') ? 5 : -161;
+
+    const tdee = Math.round(bmr * pal);
+    const minSafeCalories = (gender === 'male') ? 1500 : 1200;
+    const diff = +(targetW - w).toFixed(1);
+    let targetKcal = tdee;
+    let planHtml = '';
+
+    if (diff < -0.3) {
+      const kgToLose = Math.abs(diff);
+      const totalDeficitNeeded = kgToLose * 7700;
+      let dailyDeficit = Math.round(totalDeficitNeeded / userDays);
+      let calculatedKcal = tdee - dailyDeficit;
+
+      if (calculatedKcal < minSafeCalories) {
+        calculatedKcal = minSafeCalories;
+        dailyDeficit = tdee - calculatedKcal;
+        const adjustedDays = Math.ceil(totalDeficitNeeded / dailyDeficit);
+
+        planHtml = `
+          <strong>⚠️ Skorygowano do bezpiecznego limitu kalorycznego!</strong><br>
+          Zapotrzebowanie nie może spaść poniżej <strong>${minSafeCalories} kcal</strong> (standard medyczny).<br>
+          Ustalono maksymalny bezpieczny deficyt <strong>-${dailyDeficit} kcal/dzień</strong> (optymalny czas: ok. <strong>${adjustedDays} dni</strong>).
+        `;
+        targetKcal = calculatedKcal;
+      } else {
+        targetKcal = calculatedKcal;
+        planHtml = `
+          <strong>🎯 Cel: Redukcja (${kgToLose} kg w ${userDays} dni)</strong>.<br>
+          Dzienny deficyt wynosi <strong>-${dailyDeficit} kcal</strong>. Plan w pełni zgodny z normami fizjologicznymi.
+        `;
+      }
+      showToast('Plan żywieniowy wygenerowany pomyślnie!');
+
+    } else if (diff > 0.3) {
+      const kgToGain = diff;
+      const totalSurplusNeeded = kgToGain * 5500;
+      let dailySurplus = Math.round(totalSurplusNeeded / userDays);
+
+      targetKcal = tdee + dailySurplus;
+      planHtml = `
+        <strong>🎯 Cel: Budowanie beztłuszczowej masy (+${kgToGain} kg w ${userDays} dni)</strong>.<br>
+        Dzienna nadwyżka wynosi <strong>+${dailySurplus} kcal</strong> w stosunku do bilansu zerowego.
+      `;
+      showToast('Plan żywieniowy wygenerowany pomyślnie!');
+
+    } else {
+      targetKcal = tdee;
+      planHtml = `
+        <strong>🎯 Cel: Utrzymanie wagi</strong>.<br>
+        Aktualna waga odpowiada docelowej. Bilans zerowy wynosi <strong>${tdee} kcal</strong>.
+      `;
+      showToast('Zapotrzebowanie stabilizacyjne obliczone!');
+    }
+
+    const protein = Math.round(w * 2.0);
+    const fat = Math.round((targetKcal * 0.25) / 9);
+    const carbs = Math.max(0, Math.round((targetKcal - (protein * 4) - (fat * 9)) / 4));
+
+    document.getElementById('total-kcal').textContent = `${targetKcal} kcal`;
+    
+    const planInfoElem = document.getElementById('plan-info');
+    planInfoElem.className = 'plan-notice plan-safe';
+    planInfoElem.innerHTML = planHtml;
+
+    document.getElementById('macro-p').textContent = `${protein}g`;
+    document.getElementById('macro-c').textContent = `${carbs}g`;
+    document.getElementById('macro-f').textContent = `${fat}g`;
+
+    document.getElementById('result-box').style.display = 'block';
+  }
+
+  function addMeal(e) {
+    e.preventDefault();
+    const nameInput = document.getElementById('meal-name');
+    const kcalInput = document.getElementById('meal-kcal');
+
+    const name = nameInput.value.trim();
+    const kcal = parseInt(kcalInput.value);
+
+    if (!name || isNaN(kcal)) {
+      showToast('Wprowadź poprawne dane posiłku!', 'error');
+      return;
+    }
+
+    meals.push({ id: Date.now(), name, kcal });
+    localStorage.setItem('nutri_meals', JSON.stringify(meals));
+
+    nameInput.value = '';
+    kcalInput.value = '';
+    renderMeals();
+    showToast('Posiłek dodany do jadłospisu!');
+  }
+
+  function deleteMeal(id) {
+    meals = meals.filter(m => m.id !== id);
+    localStorage.setItem('nutri_meals', JSON.stringify(meals));
+    renderMeals();
+    showToast('Usunięto posiłek', 'error');
+  }
+
+  function clearMeals() {
+    if (meals.length === 0) return;
+    meals = [];
+    localStorage.removeItem('nutri_meals');
+    renderMeals();
+    showToast('Wyczyszczono listę posiłków');
+  }
+
+  function renderMeals() {
+    const list = document.getElementById('meal-list');
+    const sumElem = document.getElementById('meal-summary');
+    list.innerHTML = '';
+
+    const totalKcal = meals.reduce((acc, m) => acc + m.kcal, 0);
+    sumElem.textContent = `Suma posiłków: ${totalKcal} kcal`;
+
+    if (meals.length === 0) {
+      list.innerHTML = '<li style="text-align: center; color: var(--text-muted); padding: 20px;">Brak dodanych posiłków. Dodaj swój pierwszy posiłek wyżej.</li>';
+      return;
+    }
+
+    meals.forEach(m => {
+      const li = document.createElement('li');
+      li.className = 'meal-item';
+      li.innerHTML = `
+        <div class="meal-info">
+          <strong>${escapeHtml(m.name)}</strong>
+          <span>${m.kcal} kcal</span>
+        </div>
+        <button class="meal-del" onclick="deleteMeal(${m.id})">&times;</button>
+      `;
+      list.appendChild(li);
+    });
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  renderMeals();
+</script>
+</body>
+</html>
